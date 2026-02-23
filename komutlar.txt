@@ -1,0 +1,5 @@
+brew install qemu
+brew install --cask vagrant
+vagrant plugin install vagrant-qemu
+
+

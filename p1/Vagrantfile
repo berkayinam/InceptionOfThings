@@ -1,0 +1,36 @@
+Vagrant.configure("2") do |config|
+  # M serisi Mac'ler için optimize edilmiş ARM64 imajı
+  BOX_NAME = "perk/ubuntu-2204-arm64"
+  
+  config.vm.define "berkayS" do |server|
+    server.vm.box = BOX_NAME
+    server.vm.hostname = "berkayS"
+    server.vm.network "private_network", ip: "192.168.56.110"
+    
+    server.vm.provider "qemu" do |qe|
+      qe.memory = "1024"
+      qe.cpus = "1"
+    end
+    
+    server.vm.provision "shell", inline: <<-SHELL
+      bash /vagrant/scripts/init.sh
+      bash /vagrant/scripts/server.sh
+    SHELL
+  end
+
+  config.vm.define "berkaySW" do |server_worker|
+    server_worker.vm.box = BOX_NAME
+    server_worker.vm.hostname = "berkaySW"
+    server_worker.vm.network "private_network", ip: "192.168.56.111"
+    
+    server_worker.vm.provider "qemu" do |qe|
+      qe.memory = "1024"
+      qe.cpus = "1"
+    end
+    
+    server_worker.vm.provision "shell", inline: <<-SHELL
+      bash /vagrant/scripts/init.sh
+      bash /vagrant/scripts/agent.sh
+    SHELL
+  end
+end
