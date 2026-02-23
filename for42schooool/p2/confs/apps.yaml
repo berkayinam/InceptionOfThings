@@ -1,0 +1,160 @@
+# ==========================================
+# APP 1 (1 Replica)
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app1
+  labels:
+    app: app1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app1
+  template:
+    metadata:
+      labels:
+        app: app1
+    spec:
+      containers:
+      - name: app1
+        image: nginx:alpine
+        # Ekrana App1 olduğunu yazdıran basit bir Nginx ayarı
+        command: ["/bin/sh", "-c", "echo '<h1>Welcome to APP 1</h1>' > /usr/share/nginx/html/index.html && exec nginx -g 'daemon off;'"]
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1-svc
+spec:
+  selector:
+    app: app1
+  ports:
+  - port: 80
+    targetPort: 80
+
+---
+# ==========================================
+# APP 2 (3 Replicas) - PDF'te İstenen Şart
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app2
+  labels:
+    app: app2
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app2
+  template:
+    metadata:
+      labels:
+        app: app2
+    spec:
+      containers:
+      - name: app2
+        image: nginx:alpine
+        command: ["/bin/sh", "-c", "echo '<h1>Welcome to APP 2</h1>' > /usr/share/nginx/html/index.html && exec nginx -g 'daemon off;'"]
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app2-svc
+spec:
+  selector:
+    app: app2
+  ports:
+  - port: 80
+    targetPort: 80
+
+---
+# ==========================================
+# APP 3 (Default/Catch-all App)
+# ==========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app3
+  labels:
+    app: app3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app3
+  template:
+    metadata:
+      labels:
+        app: app3
+    spec:
+      containers:
+      - name: app3
+        image: nginx:alpine
+        command: ["/bin/sh", "-c", "echo '<h1>Welcome to APP 3 (DEFAULT)</h1>' > /usr/share/nginx/html/index.html && exec nginx -g 'daemon off;'"]
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app3-svc
+spec:
+  selector:
+    app: app3
+  ports:
+  - port: 80
+    targetPort: 80
+
+---
+# ==========================================
+# INGRESS (TRAEFIK YÖNLENDİRME KURALLARI)
+# ==========================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: main-ingress
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  # Kural 1: app1.com -> App 1 servisine gider
+  - host: app1.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app1-svc
+            port:
+              number: 80
+
+  # Kural 2: app2.com -> App 2 servisine gider
+  - host: app2.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app2-svc
+            port:
+              number: 80
+
+  # Kural 3: Hiçbir host belirtilmezse (veya rastgele bir IP/isimle gelinirse) App 3 servisine gider
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app3-svc
+            port:
+              number: 80

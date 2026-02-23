@@ -3,3 +3,4 @@
 .vagrant/
 *.img
 *.fd
+p1/scripts/node-token
