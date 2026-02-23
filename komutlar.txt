@@ -1,5 +1,23 @@
-brew install qemu
+# --- GEREKSİNİMLERİN KURULUMU (M1/M2/M3 Apple Silicon İçin) ---
+# 1. Parallels Desktop'ı Kur (Kurulum bitince açıp 14 günlük denemeyi başlatın)
+brew install --cask parallels
+
+# 2. Vagrant'ı Kur
 brew install --cask vagrant
-vagrant plugin install vagrant-qemu
+
+# 3. Vagrant için Parallels Eklentisini Kur
+vagrant plugin install vagrant-parallels
 
 
+# --- PROJEYİ AYAĞA KALDIRMA KOMUTLARI ---
+# Makineleri oluştur ve K3s kurulumunu başlat (p1 klasöründe çalıştırılır)
+vagrant up
+
+# Server (Control-Plane) makinesine bağlan
+vagrant ssh berkayS
+
+# Cluster'daki düğümleri (nodes) kontrol et
+sudo kubectl get nodes -o wide
+
+# Cluster'ı tamamen silmek ve sıfırlamak için
+vagrant destroy -f

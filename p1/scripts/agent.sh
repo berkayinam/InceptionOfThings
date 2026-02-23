@@ -1,5 +1,10 @@
 #!/bin/bash
-# Token'ı server.sh'ın oluşturduğu dosyadan okuyalım
+# Server token dosyasını ortak klasöre koyana kadar bekle
+while [ ! -f /vagrant/scripts/node-token ]; do
+  sleep 2
+done
+
+# Dosya geldiğinde oku ve K3s kurulumunu başlat
 TOKEN=$(cat /vagrant/scripts/node-token)
 
 export K3S_URL="https://192.168.56.110:6443"
